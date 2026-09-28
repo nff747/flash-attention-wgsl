@@ -38,3 +38,67 @@ export function createOnlineSoftmaxState(): OnlineSoftmaxState {
  * @param blockV Values matrix for current block V_j [blockSizeC, headDim]
  * @param headDim Head dimension
  */
+export function updateOnlineSoftmaxBlock(
+  state: OnlineSoftmaxState,
+  rowOutput: Float32Array,
+  blockScores: Float32Array,
+  blockV: Float32Array,
+  headDim: number
+): void {
+  const blockSizeC = blockScores.length;
+
+  // 1. Find max of current block logits
+  let mBlock = -Infinity;
+  for (let j = 0; j < blockSizeC; j++) {
+    if (blockScores[j] > mBlock) {
+      mBlock = blockScores[j];
+    }
+  }
+
+  // If block is completely masked (-Infinity), state is unchanged
+  if (!isFinite(mBlock) || mBlock < -1e8) {
+    return;
+  }
+
+  // 2. Compute new row maximum
+  const mNew = Math.max(state.m, mBlock);
+
+  // 3. Compute rescale factor for previous accumulator
+  // When state.m is -Infinity (first valid block), alpha = 0
+  const alpha = isFinite(state.m) ? Math.exp(state.m - mNew) : 0.0;
+
+  // 4. Compute unnormalized probabilities P_tilde = exp(S - mNew) and their sum
+  let blockSum = 0.0;
+  // Temporary buffer for unnormalized P
+  const pTilde = new Float32Array(blockSizeC);
+  for (let j = 0; j < blockSizeC; j++) {
+    const s = blockScores[j];
+    if (s > -1e8) {
+      const p = Math.exp(s - mNew);
+      pTilde[j] = p;
+      blockSum += p;
+    } else {
+      pTilde[j] = 0.0;
+    }
+  }
+
+  // 5. Rescale previous output accumulator and accumulate P_tilde @ V_block
+  for (let d = 0; d < headDim; d++) {
+    let pDotV = 0.0;
+    for (let j = 0; j < blockSizeC; j++) {
+      const p = pTilde[j];
+      if (p > 0.0) {
+        pDotV += p * blockV[j * headDim + d];
+      }
+    }
+    rowOutput[d] = alpha * rowOutput[d] + pDotV;
+  }
+
+  // 6. Update running state
+  state.l = alpha * state.l + blockSum;
+  state.m = mNew;
+}
+
+/**
+ * Normalizes the final output accumulator: O = O / l.
+ */
