@@ -59,5 +59,35 @@ export function naiveAttention(
     for (let h = 0; h < heads; h++) {
       const bhOffset = (b * heads + h) * seqLen * seqLen;
 
-        return { output: O, scores, attentionWeights };
+      for (let i = 0; i < seqLen; i++) {
+        const rowOffset = bhOffset + i * seqLen;
+
+        // 1. S[i, j] = (Q_i . K_j) * scale
+        for (let j = 0; j < seqLen; j++) {
+          if (config.causal && j > i) {
+            scores[rowOffset + j] = NEG_INFINITY;
+            rowBuffer[j] = NEG_INFINITY;
+            continue;
+          }
+
+          let dot = 0.0;
+          for (let d = 0; d < headDim; d++) {
+            dot += tensorGet(Q, b, h, i, d) * tensorGet(K, b, h, j, d);
+          }
+          const s = dot * scale;
+          scores[rowOffset + j] = s;
+          rowBuffer[j] = s;
+        }
+
+        // 2. P[i, :] = softmax(S[i, :])
+        stableSoftmax(rowBuffer);
+
+        for (let j = 0; j < seqLen; j++) {
+          attentionWeights[rowOffset + j] = rowBuffer[j];
+        }
+
+              }
+    }
+  }
+  return { output: O, scores, attentionWeights };
 }
