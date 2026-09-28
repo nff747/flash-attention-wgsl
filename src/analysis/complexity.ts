@@ -35,7 +35,7 @@ export function computeAttentionComplexity(
 ): ComplexityAnalysis {
   const causalFactor = isCausal ? 0.5 : 1.0;
 
-  // 1. FLOPs Calculation:
+  // 1. Precise FLOPs Calculation:
   // Q * K^T: 2 * seqLen^2 * headDim FLOPs per head
   // Softmax: 3 * seqLen^2 FLOPs per head (max, exp, sum/div)
   // P * V:   2 * seqLen^2 * headDim FLOPs per head
