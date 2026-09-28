@@ -86,8 +86,24 @@ export function naiveAttention(
           attentionWeights[rowOffset + j] = rowBuffer[j];
         }
 
-              }
+        // 3. O[i, d] = sum_j (P[i, j] * V[j, d])
+        for (let d = 0; d < headDim; d++) {
+          let acc = 0.0;
+          for (let j = 0; j < seqLen; j++) {
+            const p = rowBuffer[j];
+            if (p > 0.0) {
+              acc += p * tensorGet(V, b, h, j, d);
+            }
+          }
+          tensorSet(O, b, h, i, d, acc);
+        }
+      }
     }
   }
-  return { output: O, scores, attentionWeights };
+
+  return {
+    output: O,
+    scores,
+    attentionWeights
+  };
 }
