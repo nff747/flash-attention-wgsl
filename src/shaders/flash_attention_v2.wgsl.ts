@@ -76,7 +76,7 @@ fn main(
       continue;
     }
 
-    // Collaborative loading of K and V into shared workgroup memory
+    // Synchronized collaborative loading of K and V into shared workgroup memory
     let total_elements = uniforms.block_c * head_dim;
     let threads_in_wg = uniforms.block_r;
 
