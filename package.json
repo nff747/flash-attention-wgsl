@@ -1,0 +1,66 @@
+{
+  "name": "flash-attention-wgsl",
+  "version": "1.0.0",
+  "description": "Hardware-Tiled Online Softmax FlashAttention-2 Compute Engine in WebGPU & WGSL",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./math": {
+      "types": "./dist/math/index.d.ts",
+      "import": "./dist/math/index.mjs"
+    },
+    "./shaders": {
+      "types": "./dist/shaders/index.d.ts",
+      "import": "./dist/shaders/index.mjs"
+    },
+    "./runtime": {
+      "types": "./dist/runtime/index.d.ts",
+      "import": "./dist/runtime/index.mjs"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "bench": "tsx scripts/benchmark.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "webgpu",
+    "wgsl",
+    "flash-attention",
+    "flashattention-2",
+    "online-softmax",
+    "deep-learning",
+    "gpu-compute",
+    "transformer",
+    "attention-mechanism",
+    "tensor"
+  ],
+  "author": "nff747",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nff747/flash-attention-wgsl.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nff747/flash-attention-wgsl/issues"
+  },
+  "homepage": "https://github.com/nff747/flash-attention-wgsl#readme",
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@webgpu/types": "^0.1.74",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.3",
+    "vitest": "^2.1.8"
+  }
+}
