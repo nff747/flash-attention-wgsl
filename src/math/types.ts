@@ -125,3 +125,18 @@ export function tensorSet(
 /**
  * Generates reproducible deterministic pseudo-random tensor for testing.
  */
+export function createRandomTensor4D(
+  batch: number,
+  heads: number,
+  seqLen: number,
+  headDim: number,
+  seed = 42
+): Tensor4D {
+  let state = seed;
+  const nextRand = () => {
+    state = (state * 1664525 + 1013904223) % 4294967296;
+    return (state / 4294967296) * 2 - 1; // uniformly distributed in [-1, 1]
+  };
+
+  return createTensor4D(batch, heads, seqLen, headDim, () => nextRand());
+}
