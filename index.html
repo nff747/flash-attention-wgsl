@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>flash-attention-wgsl: Hardware-Tiled Online Softmax Visualizer</title>
+  <script type="module" crossorigin src="./assets/index-3LjVy1fO.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-DLTo-rQO.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">WGSL COMPUTE KERNEL</div>
+      <h1>flash-attention-wgsl</h1>
+      <p class="subtitle">Hardware-Tiled Online Softmax FlashAttention-2 Compute Engine in WebGPU & WGSL</p>
+    </header>
+
+    <div class="grid-layout">
+      <!-- SRAM Tiling Visualizer -->
+      <div class="card">
+        <div class="card-title">
+          <span>⚡ SRAM Workgroup Tiling & Causal Masking</span>
+        </div>
+        <div class="controls-row">
+          <button id="prev-step-btn" class="secondary">◀ Prev</button>
+          <button id="next-step-btn">Next Step ▶</button>
+          <button id="auto-play-btn" class="secondary">Auto Play</button>
+          <button id="reset-btn" class="secondary">Reset</button>
+        </div>
+
+        <div class="matrix-canvas-container">
+          <canvas id="tile-canvas" width="360" height="360"></canvas>
+        </div>
+        <div style="font-size: 0.75rem; color: #64748b; margin-top: 8px; text-align: center;">
+          Vertical: Query Blocks (Br) | Horizontal: Key/Value Blocks (Bc) | Grey: Causal Skipped
+        </div>
+      </div>
+
+      <!-- Online Softmax State Machine -->
+      <div class="card">
+        <div class="card-title">
+          <span>📐 Online Softmax State Machine</span>
+        </div>
+
+        <div class="state-display">
+          <div class="state-row">
+            <span class="state-label">Step Index</span>
+            <span id="step-counter" class="state-value">1 / 36</span>
+          </div>
+          <div class="state-row">
+            <span class="state-label">Active Tile</span>
+            <span id="active-tile" class="state-value">Block (Q=0, K/V=0)</span>
+          </div>
+          <div class="state-row">
+            <span class="state-label">Tile Execution Status</span>
+            <span id="tile-status" class="state-value">ACTIVE</span>
+          </div>
+          <div class="state-row">
+            <span class="state-label">Running Row Max (m_i)</span>
+            <span id="state-m" class="state-value">0.0000</span>
+          </div>
+          <div class="state-row">
+            <span class="state-label">Rescale Factor (alpha = exp(m_prev - m_new))</span>
+            <span id="state-alpha" class="state-value">1.0000</span>
+          </div>
+          <div class="state-row">
+            <span class="state-label">Running Normalizer (l_i)</span>
+            <span id="state-l" class="state-value">1.0000</span>
+          </div>
+        </div>
+
+        <div class="formula-box">
+          <strong>Online Softmax Recurrence (Milakov & Gimelshteyn 2018):</strong><br/>
+          m^(j) = max(m^(j-1), rowmax(S^(j)))<br/>
+          alpha = exp(m^(j-1) - m^(j))<br/>
+          l^(j) = alpha * l^(j-1) + sum(exp(S^(j) - m^(j)))<br/>
+          O^(j) = alpha * O^(j-1) + P^(j) @ V^(j)<br/>
+          Final O = O / l
+        </div>
+      </div>
+    </div>
+
+    <!-- Memory Scaling & OOM Ceiling -->
+    <div class="grid-layout">
+      <div class="card">
+        <div class="card-title">
+          <span>📊 VRAM Consumption: Naive O(N²) vs FlashAttention O(N)</span>
+        </div>
+        <p style="font-size: 0.85rem; color: #94a3b8; margin-bottom: 12px;">
+          Red = Naive Attention intermediate buffers (S, P matrix). Blue = FlashAttention-2.
+        </p>
+        <div id="memory-chart" class="chart-container"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>🚀 Live Execution & Hardware Probe</span>
+        </div>
+        <div id="webgpu-status" style="font-family: monospace; font-size: 0.85rem; margin-bottom: 14px;">
+          Checking WebGPU...
+        </div>
+        <button id="run-webgpu-btn">Run FlashAttention Verification</button>
+        <pre id="gpu-run-log" style="margin-top: 14px; background: #060910; border: 1px solid #232e42; border-radius: 8px; padding: 12px; font-family: monospace; font-size: 0.8rem; color: #38bdf8; min-height: 100px; white-space: pre-wrap;"></pre>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
