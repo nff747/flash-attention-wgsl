@@ -102,3 +102,16 @@ export function updateOnlineSoftmaxBlock(
 /**
  * Normalizes the final output accumulator: O = O / l.
  */
+export function finalizeOnlineSoftmax(
+  state: OnlineSoftmaxState,
+  rowOutput: Float32Array
+): void {
+  if (state.l > 0.0) {
+    const invL = 1.0 / state.l;
+    for (let d = 0; d < rowOutput.length; d++) {
+      rowOutput[d] *= invL;
+    }
+  } else {
+    rowOutput.fill(0.0);
+  }
+}
