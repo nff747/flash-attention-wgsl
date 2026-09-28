@@ -55,3 +55,50 @@ export function stableSoftmax(vector: Float32Array): Float32Array {
 /**
  * Calculates Maximum Absolute Error: max_i |a_i - b_i|
  */
+export function maxAbsoluteError(a: Float32Array, b: Float32Array): number {
+  if (a.length !== b.length) {
+    throw new Error(`Array lengths must match: ${a.length} vs ${b.length}`);
+  }
+  let maxDiff = 0.0;
+  for (let i = 0; i < a.length; i++) {
+    const diff = Math.abs(a[i] - b[i]);
+    if (diff > maxDiff) {
+      maxDiff = diff;
+    }
+  }
+  return maxDiff;
+}
+
+/**
+ * Calculates Mean Squared Error: (1/N) * sum_i (a_i - b_i)^2
+ */
+export function meanSquaredError(a: Float32Array, b: Float32Array): number {
+  if (a.length !== b.length) {
+    throw new Error(`Array lengths must match: ${a.length} vs ${b.length}`);
+  }
+  let sumSq = 0.0;
+  for (let i = 0; i < a.length; i++) {
+    const diff = a[i] - b[i];
+    sumSq += diff * diff;
+  }
+  return sumSq / a.length;
+}
+
+/**
+ * Calculates Relative Error: max_i (|a_i - b_i| / (max(|a_i|, |b_i|) + eps))
+ */
+export function maxRelativeError(a: Float32Array, b: Float32Array, eps = 1e-5): number {
+  if (a.length !== b.length) {
+    throw new Error(`Array lengths must match: ${a.length} vs ${b.length}`);
+  }
+  let maxRel = 0.0;
+  for (let i = 0; i < a.length; i++) {
+    const absDiff = Math.abs(a[i] - b[i]);
+    const denom = Math.max(Math.abs(a[i]), Math.abs(b[i])) + eps;
+    const rel = absDiff / denom;
+    if (rel > maxRel) {
+      maxRel = rel;
+    }
+  }
+  return maxRel;
+}
