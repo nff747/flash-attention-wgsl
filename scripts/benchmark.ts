@@ -20,7 +20,7 @@ async function runBenchmarks() {
   const headDim = 32;
   const seqLengths = [64, 128, 256, 512];
 
-  console.log(`\nConfig: Batch=${batch}, Heads=${heads}, HeadDim=${headDim}, Causal=true`);
+  console.log(`\nBenchmark Configuration: Batch=${batch}, Heads=${heads}, HeadDim=${headDim}, Causal=true`);
   console.log('-'.repeat(80));
   console.log(
     'SeqLen'.padEnd(8) +
