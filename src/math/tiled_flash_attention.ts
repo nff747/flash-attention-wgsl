@@ -66,7 +66,7 @@ export function flashAttentionCPU(
   let skippedCausalBlocks = 0;
   let executedBlocks = 0;
 
-  // Reusable tile SRAM buffers
+  // Optimized SRAM cache tiles for inner loop
   const sBlock = new Float32Array(Bc);
   const vBlock = new Float32Array(Bc * headDim);
   const rowOutputAcc = new Float32Array(headDim);
