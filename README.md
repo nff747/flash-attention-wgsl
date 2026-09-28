@@ -87,3 +87,98 @@ Measured VRAM footprint across sequence lengths ($B = 1, H = 16, d = 64, \text{f
 
 ---
 
+## Features
+
+- **WebGPU WGSL Compute Kernels**:
+  - `flash_attention_v2.wgsl`: Parametric workgroup tiling (`workgroup_size(Br, 1, 1)`), collaborative SRAM loading, barrier synchronization.
+  - `flash_attention_vec4.wgsl`: 128-bit vectorized `vec4<f32>` memory loads and dot products.
+  - `naive_attention.wgsl`: Baseline global-memory shader for profiling and verification.
+- **Autoregressive Causal Masking**: Automatically skips strictly upper-triangular tiles ($t_c \cdot B_c > (t_r + 1) \cdot B_r$), saving 50% of FLOPs and memory transactions.
+- **CPU Reference Engines**:
+  - `naiveAttention()`: Exact $O(N^2)$ baseline.
+  - `flashAttentionCPU()`: Hardware-faithful block tiling simulation with running accumulators.
+- **Dynamic Shader Generator**: Compiles WGSL at runtime with model-tailored $B_r, B_c, d$ constants.
+- **Analysis Suite**: Exact FLOPs calculators, memory IO bandwidth models, and OOM threshold estimators.
+
+---
+
+## Installation
+
+```bash
+npm install flash-attention-wgsl
+```
+
+---
+
+## Quickstart
+
+### 1. CPU Reference Engine
+
+```typescript
+import {
+  createRandomTensor4D,
+  flashAttentionCPU,
+  naiveAttention,
+  maxAbsoluteError
+} from 'flash-attention-wgsl';
+
+// Shape: [batch=1, heads=8, seqLen=512, headDim=64]
+const Q = createRandomTensor4D(1, 8, 512, 64);
+const K = createRandomTensor4D(1, 8, 512, 64);
+const V = createRandomTensor4D(1, 8, 512, 64);
+
+const config = {
+  causal: true,
+  blockSizeR: 32,
+  blockSizeC: 32
+};
+
+const result = flashAttentionCPU(Q, K, V, config);
+console.log(`Executed blocks: ${result.tilingMetrics.executedBlocks}`);
+console.log(`Skipped causal blocks: ${result.tilingMetrics.skippedCausalBlocks}`);
+```
+
+### 2. WebGPU Pipeline Execution
+
+```typescript
+import {
+  initWebGPUContext,
+  FlashAttentionPipeline,
+  createRandomTensor4D
+} from 'flash-attention-wgsl';
+
+const gpu = await initWebGPUContext();
+if (gpu) {
+  const pipeline = new FlashAttentionPipeline(gpu.device);
+
+  const Q = createRandomTensor4D(1, 4, 256, 64);
+  const K = createRandomTensor4D(1, 4, 256, 64);
+  const V = createRandomTensor4D(1, 4, 256, 64);
+
+  const output = await pipeline.execute(Q, K, V, { causal: true });
+  console.log('FlashAttention computed on WebGPU:', output.length);
+}
+```
+
+---
+
+## Verification & Testing
+
+Every implementation is numerically validated against naive scaled dot-product attention:
+
+```bash
+# Run Vitest verification suite
+npm test
+
+# Run typecheck
+npm run typecheck
+
+# Run benchmark suite
+npm run bench
+```
+
+---
+
+## License
+
+MIT © [nff747](https://github.com/nff747)
