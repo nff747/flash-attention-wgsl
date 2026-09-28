@@ -107,7 +107,7 @@ class VisualizerApp {
         this.playInterval = window.setInterval(() => {
           this.currentStep = (this.currentStep + 1) % this.steps.length;
           this.render();
-        }, 350);
+        }, 320);
       } else {
         autoBtn.textContent = 'Auto Play';
         if (this.playInterval) clearInterval(this.playInterval);
