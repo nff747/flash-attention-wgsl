@@ -231,3 +231,6 @@ canvas {
   font-family: var(--font-mono);
   color: var(--text-muted);
 }
+
+/* Interactive canvas enhancements */
+.matrix-canvas-container:hover { border-color: var(--accent-cyan); }
