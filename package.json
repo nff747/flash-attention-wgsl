@@ -1,6 +1,7 @@
 {
   "name": "flash-attention-wgsl",
   "version": "1.0.0",
+  "sideEffects": false,
   "description": "Hardware-Tiled Online Softmax FlashAttention-2 Compute Engine in WebGPU & WGSL",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
