@@ -2,7 +2,6 @@
 
 [![CI](https://github.com/nff747/flash-attention-wgsl/actions/workflows/ci.yml/badge.svg)](https://github.com/nff747/flash-attention-wgsl/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Architecture: FlashAttention-2](https://img.shields.io/badge/Architecture-FlashAttention--2-emerald.svg)]
 [![WebGPU](https://img.shields.io/badge/WebGPU-WGSL-orange.svg)](https://www.w3.org/TR/webgpu/)
 
 Hardware-tiled, online-softmax **FlashAttention-2** compute engine in WebGPU & WGSL. Eliminates $O(N^2)$ intermediate attention matrix materialization by computing scaled dot-product attention in high-speed on-chip SRAM (`var<workgroup>` memory) with exact mathematical parity to standard attention ($\epsilon < 10^{-5}$).
