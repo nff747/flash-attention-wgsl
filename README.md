@@ -1,5 +1,6 @@
 # flash-attention-wgsl
 
+[![Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-brightgreen.svg)](https://nff747.github.io/flash-attention-wgsl/)
 [![CI](https://github.com/nff747/flash-attention-wgsl/actions/workflows/ci.yml/badge.svg)](https://github.com/nff747/flash-attention-wgsl/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![WebGPU](https://img.shields.io/badge/WebGPU-WGSL-orange.svg)](https://www.w3.org/TR/webgpu/)
