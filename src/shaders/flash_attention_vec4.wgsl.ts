@@ -21,7 +21,7 @@ struct AttentionUniforms {
 @group(0) @binding(3) var<storage, read> V: array<vec4<f32>>;
 @group(0) @binding(4) var<storage, read_write> O: array<vec4<f32>>;
 
-// Shared workgroup memory storing vec4 elements
+// Aligned shared workgroup memory storing vec4 elements
 var<workgroup> s_k: array<vec4<f32>, {{BLOCK_C}} * {{HEAD_DIM_VEC4}}>;
 var<workgroup> s_v: array<vec4<f32>, {{BLOCK_C}} * {{HEAD_DIM_VEC4}}>;
 
