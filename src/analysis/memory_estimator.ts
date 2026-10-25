@@ -1,6 +1,6 @@
 /**
  * flash-attention-wgsl: VRAM Footprint & OOM Threshold Estimator
- * Models hardware buffer limits and predicts WebGPU memory overflow points.
+ * Models hardware buffer limits, SRAM tile sizes, and predicts WebGPU memory overflow points.
  */
 
 export interface MemoryComparisonPoint {
@@ -16,8 +16,17 @@ export interface MemoryComparisonPoint {
   readonly flashExceedsMaxBindingSize: boolean;
 }
 
+export interface SRAMTileConfig {
+  tileSizeM: number;
+  tileSizeN: number;
+  headDim: number;
+  workgroupSharedBytes: number;
+  fitsInMaxComputeWorkgroupStorage: boolean;
+}
+
 export const WEBGPU_DEFAULT_MAX_STORAGE_BUFFER = 134217728; // 128 MB default limit
 export const WEBGPU_EXTENDED_MAX_STORAGE_BUFFER = 2147483648; // 2 GB upper spec limit
+export const WEBGPU_MAX_WORKGROUP_STORAGE_BYTES = 16384; // 16 KB default WebGPU shared workgroup memory
 
 export function estimateMemoryScaling(
   batch: number,
@@ -53,4 +62,32 @@ export function estimateMemoryScaling(
       flashExceedsMaxBindingSize: singleFlashBuffer > WEBGPU_DEFAULT_MAX_STORAGE_BUFFER
     };
   });
+}
+
+/**
+ * Validates whether the given block tile configuration fits within WebGPU shared memory (var<workgroup>).
+ */
+export function validateSRAMTileConfiguration(
+  tileSizeM: number,
+  tileSizeN: number,
+  headDim: number,
+  bytesPerElem: number = 4
+): SRAMTileConfig {
+  // Tile Q: tileSizeM * headDim * bytesPerElem
+  // Tile K: tileSizeN * headDim * bytesPerElem
+  // Tile V: tileSizeN * headDim * bytesPerElem
+  // Tile S: tileSizeM * tileSizeN * bytesPerElem
+  const qBytes = tileSizeM * headDim * bytesPerElem;
+  const kBytes = tileSizeN * headDim * bytesPerElem;
+  const vBytes = tileSizeN * headDim * bytesPerElem;
+  const sBytes = tileSizeM * tileSizeN * bytesPerElem;
+  const total = qBytes + kBytes + vBytes + sBytes;
+
+  return {
+    tileSizeM,
+    tileSizeN,
+    headDim,
+    workgroupSharedBytes: total,
+    fitsInMaxComputeWorkgroupStorage: total <= WEBGPU_MAX_WORKGROUP_STORAGE_BYTES,
+  };
 }
