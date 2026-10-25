@@ -46,3 +46,26 @@ describe('Attention Complexity & Memory Profiling', () => {
     expect(p8192.savingsPercent).toBeGreaterThan(90.0);
   });
 });
+
+import { validateSRAMTileConfiguration } from '../src/analysis/memory_estimator';
+
+describe('SRAM Tile Storage Validation', () => {
+  it('validates whether SRAM tile sizes fit within 16 KB WebGPU workgroup limit', () => {
+    // 16x16 tile with headDim 32:
+    // Q: 16*32*4 = 2048
+    // K: 16*32*4 = 2048
+    // V: 16*32*4 = 2048
+    // S: 16*16*4 = 1024
+    // Total = 7168 bytes (< 16384 bytes) -> fits!
+    const validConfig = validateSRAMTileConfiguration(16, 16, 32);
+    expect(validConfig.workgroupSharedBytes).toBe(7168);
+    expect(validConfig.fitsInMaxComputeWorkgroupStorage).toBe(true);
+
+    // Oversized 64x64 tile with headDim 64:
+    // Q: 64*64*4 = 16384
+    // Exceeds 16 KB by itself!
+    const invalidConfig = validateSRAMTileConfiguration(64, 64, 64);
+    expect(invalidConfig.workgroupSharedBytes).toBeGreaterThan(16384);
+    expect(invalidConfig.fitsInMaxComputeWorkgroupStorage).toBe(false);
+  });
+});
