@@ -57,3 +57,40 @@ describe('Online Softmax State Machine', () => {
     }
   });
 });
+
+import { mergeOnlineSoftmaxStates } from '../src/math/online_softmax';
+
+describe('Split-K Online Softmax State Merging', () => {
+  it('should merge two disjoint block states and match monolithic online softmax', () => {
+    const headDim = 4;
+    // Worker A processes block 1: logits [1.0, 2.0]
+    const stateA = createOnlineSoftmaxState();
+    const outA = new Float32Array(headDim);
+    const scoresA = new Float32Array([1.0, 2.0]);
+    const vA = new Float32Array([1, 1, 1, 1, 2, 2, 2, 2]);
+    updateOnlineSoftmaxBlock(stateA, outA, scoresA, vA, headDim);
+
+    // Worker B processes block 2: logits [3.0, 0.5]
+    const stateB = createOnlineSoftmaxState();
+    const outB = new Float32Array(headDim);
+    const scoresB = new Float32Array([3.0, 0.5]);
+    const vB = new Float32Array([3, 3, 3, 3, 0.5, 0.5, 0.5, 0.5]);
+    updateOnlineSoftmaxBlock(stateB, outB, scoresB, vB, headDim);
+
+    // Merge A and B
+    const merged = mergeOnlineSoftmaxStates(stateA, outA, stateB, outB);
+    finalizeOnlineSoftmax(merged.state, merged.output);
+
+    // Compute monolithic baseline: 4 logits sequentially
+    const stateMono = createOnlineSoftmaxState();
+    const outMono = new Float32Array(headDim);
+    const allScores = new Float32Array([1.0, 2.0, 3.0, 0.5]);
+    const allV = new Float32Array([...vA, ...vB]);
+    updateOnlineSoftmaxBlock(stateMono, outMono, allScores, allV, headDim);
+    finalizeOnlineSoftmax(stateMono, outMono);
+
+    for (let d = 0; d < headDim; d++) {
+      expect(merged.output[d]).toBeCloseTo(outMono[d], 5);
+    }
+  });
+});
