@@ -21,6 +21,34 @@ export function createOnlineSoftmaxState(): OnlineSoftmaxState {
 }
 
 /**
+ * Merges two independent Online Softmax states (e.g. from parallel split-K workers or multi-threaded reductions).
+ */
+export function mergeOnlineSoftmaxStates(
+  stateA: OnlineSoftmaxState,
+  outputA: Float32Array,
+  stateB: OnlineSoftmaxState,
+  outputB: Float32Array
+): { state: OnlineSoftmaxState; output: Float32Array } {
+  if (!isFinite(stateA.m)) return { state: { ...stateB }, output: outputB.slice() };
+  if (!isFinite(stateB.m)) return { state: { ...stateA }, output: outputA.slice() };
+
+  const mNew = Math.max(stateA.m, stateB.m);
+  const alphaA = Math.exp(stateA.m - mNew);
+  const alphaB = Math.exp(stateB.m - mNew);
+
+  const lNew = alphaA * stateA.l + alphaB * stateB.l;
+  const mergedOutput = new Float32Array(outputA.length);
+  for (let d = 0; d < outputA.length; d++) {
+    mergedOutput[d] = alphaA * outputA[d] + alphaB * outputB[d];
+  }
+
+  return {
+    state: { m: mNew, l: lNew },
+    output: mergedOutput,
+  };
+}
+
+/**
  * Updates running online softmax state and rescales the output accumulator.
  *
  * Given current state (m_prev, l_prev), accumulator O_prev,
