@@ -46,7 +46,7 @@
     "attention-mechanism",
     "tensor"
   ],
-  "author": "nff747",
+  "author": "Lunar Paradox <engineering@lunarparadox.com>",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -55,7 +55,7 @@
   "bugs": {
     "url": "https://github.com/nff747/flash-attention-wgsl/issues"
   },
-  "homepage": "https://github.com/nff747/flash-attention-wgsl#readme",
+  "homepage": "https://lunarparadox.com",
   "devDependencies": {
     "@types/node": "^22.10.2",
     "@webgpu/types": "^0.1.74",
